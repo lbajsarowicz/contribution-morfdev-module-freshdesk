@@ -32,18 +32,27 @@ class RendererType
         switch ($productType) {
             case TypeBundle::TYPE_CODE:
                 /** @var RendererBundle $renderer */
-                $renderer = $this->layout->createBlock(RendererBundle::class);
-                $renderer->setTemplate('Morfdev_Freshdesk::renderer/bundle.phtml');
+                $renderer = $this->layout->createBlock(
+                    RendererBundle::class,
+                    '',
+                    ['data' => ['template' => 'Morfdev_Freshdesk::renderer/bundle.phtml']]
+                );
                 break;
             case TypeDownloadable::TYPE_DOWNLOADABLE:
                 /** @var RendererDownloadable $renderer */
-                $renderer = $this->layout->createBlock(RendererDownloadable::class);
-                $renderer->setTemplate('Morfdev_Freshdesk::renderer/downloadable.phtml');
+                $renderer = $this->layout->createBlock(
+                    RendererDownloadable::class,
+                    '',
+                    ['data' => ['template' => 'Morfdev_Freshdesk::renderer/downloadable.phtml']]
+                );
                 break;
             default:
                 /** @var DefaultRenderer $renderer */
-                $renderer = $this->layout->createBlock(DefaultRenderer::class);
-                $renderer->setTemplate('Morfdev_Freshdesk::renderer/default.phtml');
+                $renderer = $this->layout->createBlock(
+                    DefaultRenderer::class,
+                    '',
+                    ['data' => ['template' => 'Morfdev_Freshdesk::renderer/default.phtml']]
+                );
         }
         return $renderer;
     }

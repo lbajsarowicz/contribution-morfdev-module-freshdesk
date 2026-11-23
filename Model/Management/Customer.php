@@ -11,6 +11,7 @@ use Magento\Store\Model\StoreManagerInterface;
 use Magento\Customer\Api\GroupRepositoryInterface;
 use Magento\Customer\Api\AddressRepositoryInterface;
 use Magento\Directory\Model\CountryFactory;
+use Magento\Directory\Model\ResourceModel\Country as CountryResource;
 use Magento\Framework\DB\Select;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magento\Backend\Model\UrlInterface;
@@ -58,6 +59,9 @@ class Customer implements CustomerManagementInterface
     /** @var  AddressMapper */
     protected $addressMapper;
 
+    /** @var CountryResource */
+    protected $countryResource;
+
     /**
      * @param CustomerRepositoryInterface $customerRepository
      * @param OrderCollectionFactory $orderCollectionFactory
@@ -71,6 +75,7 @@ class Customer implements CustomerManagementInterface
      * @param UrlInterface $urlBuilder
      * @param AddressRenderer $addressRenderer
      * @param AddressMapper $mapper
+     * @param CountryResource $countryResource
      */
     public function __construct(
         CustomerRepositoryInterface $customerRepository,
@@ -84,7 +89,8 @@ class Customer implements CustomerManagementInterface
         TimezoneInterface $localeDate,
         UrlInterface $urlBuilder,
         AddressRenderer $addressRenderer,
-        AddressMapper $mapper
+        AddressMapper $mapper,
+        CountryResource $countryResource
     ) {
         $this->customerRepository = $customerRepository;
         $this->orderCollectionFactory = $orderCollectionFactory;
@@ -98,6 +104,7 @@ class Customer implements CustomerManagementInterface
         $this->urlBuilder = $urlBuilder;
         $this->addressRenderer = $addressRenderer;
         $this->addressMapper = $mapper;
+        $this->countryResource = $countryResource;
     }
 
     /**
@@ -151,7 +158,7 @@ class Customer implements CustomerManagementInterface
             try {
                 $address = $this->addressRepository->getById($customer->getDefaultBilling());
                 $country = $this->countryFactory->create();
-                $country->getResource()->load($country, $address->getCountryId());
+                $this->countryResource->load($country, $address->getCountryId());
                 $countryName = $country->getName();
             } catch (\Exception $e) {
                 $countryName = '';
@@ -410,7 +417,7 @@ class Customer implements CustomerManagementInterface
 
         try {
             $country = $this->countryFactory->create();
-            $country->getResource()->load($country, $countryId);
+            $this->countryResource->load($country, $countryId);
             return $country->getName();
         } catch (\Exception $e) {
             return '';

@@ -29,7 +29,9 @@ use Magento\Sales\Api\OrderAddressRepositoryInterface;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
 use Magento\Customer\Model\ResourceModel\Customer\CollectionFactory as CustomerCollectionFactory;
 use Magento\Directory\Model\CountryFactory;
+use Magento\Directory\Model\ResourceModel\Country as CountryResource;
 use Magento\Sales\Model\Order\StatusFactory;
+use Magento\Sales\Model\ResourceModel\Order\Status as StatusResource;
 use Magento\Shipping\Helper\Data as ShippingHelper;
 use Magento\Sales\Model\Order;
 
@@ -99,6 +101,12 @@ class OrderRecent implements OrderRecentManagementInterface
 	/** @var  ShippingHelper */
 	protected $shippingHelper;
 
+    /** @var StatusResource */
+    protected $orderStatusResource;
+
+    /** @var CountryResource */
+    protected $countryResource;
+
 	/**
 	 * @param OrderRepositoryInterface $orderRepository
 	 * @param OrderItemRepositoryInterface $orderItemRepository
@@ -121,6 +129,8 @@ class OrderRecent implements OrderRecentManagementInterface
 	 * @param Config $config
 	 * @param StatusFactory $orderStatusFactory
 	 * @param ShippingHelper $shippingHelper
+	 * @param CountryResource $countryResource
+	 * @param StatusResource $orderStatusResource
 	 */
     public function __construct(
         OrderRepositoryInterface $orderRepository,
@@ -143,7 +153,9 @@ class OrderRecent implements OrderRecentManagementInterface
 		CountryFactory $countryFactory,
 		Config $config,
 		StatusFactory $orderStatusFactory,
-		ShippingHelper $shippingHelper
+		ShippingHelper $shippingHelper,
+        CountryResource $countryResource,
+        StatusResource $orderStatusResource
     ) {
         $this->orderRepository = $orderRepository;
         $this->orderItemRepository = $orderItemRepository;
@@ -166,6 +178,8 @@ class OrderRecent implements OrderRecentManagementInterface
 		$this->config = $config;
 		$this->orderStatusFactory = $orderStatusFactory;
 		$this->shippingHelper = $shippingHelper;
+        $this->countryResource = $countryResource;
+        $this->orderStatusResource = $orderStatusResource;
     }
 
     /**
@@ -322,7 +336,7 @@ class OrderRecent implements OrderRecentManagementInterface
 			];
 			if ($billingAddress) {
 				$country = $this->countryFactory->create();
-				$country->getResource()->load($country, $billingAddress->getCountryId());
+				$this->countryResource->load($country, $billingAddress->getCountryId());
 				$countryName = $country->getName();
 
 				$billing = [
@@ -340,7 +354,7 @@ class OrderRecent implements OrderRecentManagementInterface
 
 			if ($shippingAddress) {
 				$country = $this->countryFactory->create();
-				$country->getResource()->load($country, $shippingAddress->getCountryId());
+				$this->countryResource->load($country, $shippingAddress->getCountryId());
 				$countryName = $country->getName();
 
 				$shipping = [
@@ -361,7 +375,8 @@ class OrderRecent implements OrderRecentManagementInterface
 				$commentList[] = ['comment' => $comment->getComment(), 'status' => $comment->getStatus(), 'created_at' => $this->localeDate->formatDateTime($comment->getCreatedAt(), \IntlDateFormatter::MEDIUM,
 					\IntlDateFormatter::SHORT)];
 			}
-			$status = $this->orderStatusFactory->create()->load($order->getStatus());
+			$status = $this->orderStatusFactory->create();
+			$this->orderStatusResource->load($status, $order->getStatus());
             $orderInfo[] = [
                 'url' => $this->urlBuilder->getUrl('md_freshdesk/index/redirect',
                     ['id' => $order->getEntityId(), 'type' => RedirectType::ORDER_TYPE]),
